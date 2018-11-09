@@ -52,6 +52,8 @@ internal class RealStateStore<T>(
         executor.execute { flushQueues() }
     }
 
+    override fun peekState() = lock.withLock { state }
+
     override fun addStateListener(listener: (T) -> Unit): Unit = lock.withLock {
         stateListeners.add(listener)
 

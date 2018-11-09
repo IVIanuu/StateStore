@@ -27,6 +27,8 @@ interface StateStore<T> {
 
     fun setState(reducer: T.() -> T)
 
+    fun peekState(): T
+
     fun addStateListener(listener: (T) -> Unit)
 
     fun removeStateListener(listener: (T) -> Unit)
