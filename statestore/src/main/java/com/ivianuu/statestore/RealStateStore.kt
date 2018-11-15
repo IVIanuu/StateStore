@@ -55,6 +55,8 @@ internal class RealStateStore<T>(
     override fun peekState() = lock.withLock { state }
 
     override fun addStateListener(listener: (T) -> Unit): Unit = lock.withLock {
+        if (stateListeners.contains(listener)) return@withLock
+
         stateListeners.add(listener)
 
         // send current state
@@ -82,6 +84,8 @@ internal class RealStateStore<T>(
     }
 
     override fun addCloseListener(listener: () -> Unit): Unit = lock.withLock {
+        if (closeListeners.contains(listener)) return@withLock
+
         if (closed) {
             listener()
             return@withLock

@@ -108,6 +108,18 @@ class RealStateStoreTest {
     }
 
     @Test
+    fun testCloseListenerAddedTwice() {
+        val listener = TestCloseListener()
+
+        store.addCloseListener(listener)
+        store.addCloseListener(listener)
+
+        store.close()
+
+        assertEquals(1, listener.closeCalls)
+    }
+
+    @Test
     fun testStateListener() {
         val listener = TestStateListener<TestState>()
         val expectedState = mutableListOf<TestState>()
@@ -127,7 +139,21 @@ class RealStateStoreTest {
     }
 
     @Test
-    fun testListenerNotCalledForNoop() {
+    fun testStateListenerAddedTwice() {
+        val listener = TestStateListener<TestState>()
+
+        store.addStateListener(listener)
+        store.addStateListener(listener)
+
+        assertEquals(listener.calls, 1)
+
+        store.setState { inc() }
+
+        assertEquals(listener.calls, 2)
+    }
+
+    @Test
+    fun testStateListenerNotCalledForNoop() {
         val listener = TestStateListener<TestState>()
         store.addStateListener(listener)
 
@@ -139,7 +165,7 @@ class RealStateStoreTest {
     }
 
     @Test
-    fun testSubscribeNotCalledForSameValue() {
+    fun testStateListenerNotCalledForSameValue() {
         val listener = TestStateListener<TestState>()
         store.addStateListener(listener)
 
