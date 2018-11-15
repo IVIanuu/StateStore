@@ -31,6 +31,7 @@ java {
 
 dependencies {
     api(Deps.kotlinStdLib)
+    testImplementation(Deps.junit)
 }
 
 val sourcesJar = task("sourcesJar", Jar::class) {

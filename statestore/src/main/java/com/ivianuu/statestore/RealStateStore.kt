@@ -23,8 +23,8 @@ import kotlin.concurrent.withLock
 
 internal class RealStateStore<T>(
     initialState: T,
-    private val executor: Executor,
-    private val callbackExecutor: Executor
+    internal val executor: Executor,
+    internal val callbackExecutor: Executor
 ) : StateStore<T> {
 
     private var state = initialState
@@ -113,6 +113,9 @@ internal class RealStateStore<T>(
     }
 
     private fun setState(state: T) {
+        if (this.state === state) return
+        if (this.state == state) return
+
         // set the new state
         this.state = state
 

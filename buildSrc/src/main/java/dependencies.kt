@@ -16,6 +16,7 @@ object Versions {
     const val androidx = "1.0.0"
     const val androidxArch = "2.0.0-rc01"
     const val coroutines = "1.0.0"
+    const val junit = "4.12"
     const val kotlin = "1.3.0"
     const val mavenGradle = "2.1"
     const val rxJava = "2.2.2"
@@ -31,6 +32,8 @@ object Deps {
 
     const val coroutinesCore =
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
+
+    const val junit = "junit:junit:${Versions.junit}"
 
     const val kotlinGradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
     const val kotlinStdLib = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlin}"
