@@ -16,7 +16,7 @@
 
 package com.ivianuu.statestore.util
 
-class TestStateListener<T> : (T) -> Unit {
+class TestListener<T> : (T) -> Unit {
     val history get() = _history
     private val _history = mutableListOf<T>()
 

@@ -29,15 +29,11 @@ interface StateStore<T> {
 
     fun peekState(): T
 
-    fun addStateListener(listener: (T) -> Unit)
+    fun addListener(listener: (T) -> Unit)
 
-    fun removeStateListener(listener: (T) -> Unit)
+    fun removeListener(listener: (T) -> Unit)
 
     fun close()
-
-    fun addCloseListener(listener: () -> Unit)
-
-    fun removeCloseListener(listener: () -> Unit)
 
 }
 
