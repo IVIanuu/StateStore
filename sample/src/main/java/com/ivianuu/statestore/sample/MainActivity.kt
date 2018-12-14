@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.ivianuu.statestore.StateStore
 import com.ivianuu.statestore.rx.observable
+import com.ivianuu.statestore.rx.onClose
 import io.reactivex.disposables.CompositeDisposable
 
 class MainActivity : AppCompatActivity() {
@@ -15,6 +16,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        state.onClose
+            .subscribe { Log.d("testt", "closed thread ${Thread.currentThread().name}") }
+            .also { disposables.add(it) }
 
         state.observable
             .subscribe { Log.d("testt", "state changed -> $it, thread ${Thread.currentThread().name}") }

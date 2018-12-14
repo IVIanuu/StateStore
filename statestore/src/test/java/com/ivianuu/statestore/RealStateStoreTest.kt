@@ -16,12 +16,11 @@
 
 package com.ivianuu.statestore
 
+import com.ivianuu.statestore.util.TestCloseListener
 import com.ivianuu.statestore.util.TestExecutor
-import com.ivianuu.statestore.util.TestListener
 import com.ivianuu.statestore.util.TestState
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import com.ivianuu.statestore.util.TestStateListener
+import org.junit.Assert.*
 import org.junit.Test
 
 class RealStateStoreTest {
@@ -29,6 +28,35 @@ class RealStateStoreTest {
     private val executor = TestExecutor()
     private val callbackExecutor = TestExecutor()
     private val store = RealStateStore(TestState(), executor, callbackExecutor)
+
+    @Test
+    fun testCloseListener() {
+        val listener = TestCloseListener()
+        store.addCloseListener(listener)
+        assertEquals(0, listener.closeCalls)
+        store.close()
+        assertEquals(1, listener.closeCalls)
+        store.close()
+        assertEquals(1, listener.closeCalls)
+    }
+
+    @Test
+    fun testRemoveCloseListener() {
+        val listener = TestCloseListener()
+        store.addCloseListener(listener)
+        store.removeCloseListener(listener)
+        store.close()
+        assertEquals(0, listener.closeCalls)
+    }
+
+    @Test
+    fun testCloseListenerAddedTwice() {
+        val listener = TestCloseListener()
+        store.addCloseListener(listener)
+        store.addCloseListener(listener)
+        store.close()
+        assertEquals(1, listener.closeCalls)
+    }
 
     @Test
     fun testGetAndSetState() {
@@ -83,18 +111,18 @@ class RealStateStoreTest {
 
     @Test
     fun testListener() {
-        val listener = TestListener<TestState>()
+        val listener = TestStateListener<TestState>()
         val expectedState = mutableListOf<TestState>()
         expectedState.add(TestState(0))
 
-        store.addListener(listener)
+        store.addStateListener(listener)
         assertEquals(expectedState, listener.history)
 
         store.setState { inc() }
         expectedState.add(TestState(1))
         assertEquals(expectedState, listener.history)
 
-        store.removeListener(listener)
+        store.removeStateListener(listener)
 
         store.setState { inc() }
         assertEquals(expectedState, listener.history)
@@ -102,10 +130,10 @@ class RealStateStoreTest {
 
     @Test
     fun testListenerAddedTwice() {
-        val listener = TestListener<TestState>()
+        val listener = TestStateListener<TestState>()
 
-        store.addListener(listener)
-        store.addListener(listener)
+        store.addStateListener(listener)
+        store.addStateListener(listener)
 
         assertEquals(listener.calls, 1)
 
@@ -116,8 +144,8 @@ class RealStateStoreTest {
 
     @Test
     fun testListenerNotCalledForNoop() {
-        val listener = TestListener<TestState>()
-        store.addListener(listener)
+        val listener = TestStateListener<TestState>()
+        store.addStateListener(listener)
 
         assertEquals(1, listener.calls)
 
@@ -128,8 +156,8 @@ class RealStateStoreTest {
 
     @Test
     fun testListenerNotCalledForSameValue() {
-        val listener = TestListener<TestState>()
-        store.addListener(listener)
+        val listener = TestStateListener<TestState>()
+        store.addStateListener(listener)
 
         assertEquals(1, listener.calls)
 

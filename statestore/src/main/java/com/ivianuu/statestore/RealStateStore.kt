@@ -31,7 +31,8 @@ internal class RealStateStore<T>(
 
     private var closed = false
 
-    private val listeners = mutableListOf<((T) -> Unit)>()
+    private val closeListeners = mutableListOf<() -> Unit>()
+    private val stateListeners = mutableListOf<(T) -> Unit>()
 
     private val lock = ReentrantLock()
 
@@ -53,27 +54,45 @@ internal class RealStateStore<T>(
 
     override fun peekState() = lock.withLock { state }
 
-    override fun addListener(listener: (T) -> Unit): Unit = lock.withLock {
-        if (listeners.contains(listener)) return@withLock
+    override fun addStateListener(listener: (T) -> Unit): Unit = lock.withLock {
+        if (stateListeners.contains(listener)) return@withLock
 
-        listeners.add(listener)
+        stateListeners.add(listener)
 
         // send current state
         val state = state
         callbackExecutor.execute { listener(state) }
     }
 
-    override fun removeListener(listener: (T) -> Unit): Unit = lock.withLock {
-        listeners.remove(listener)
+    override fun removeStateListener(listener: (T) -> Unit): Unit = lock.withLock {
+        stateListeners.remove(listener)
     }
 
     override fun close(): Unit = lock.withLock {
         if (closed) return@withLock
         closed = true
 
-        listeners.clear()
+        stateListeners.clear()
+
+        val listeners = closeListeners.toList()
+        closeListeners.clear()
 
         (executor as? SingleThreadExecutor)?.close() // todo generify
+
+        callbackExecutor.execute { listeners.forEach { it() } }
+    }
+
+    override fun addCloseListener(listener: () -> Unit): Unit = lock.withLock {
+        if (closeListeners.contains(listener)) return@withLock
+        if (closed) {
+            listener()
+            return@withLock
+        }
+        closeListeners.add(listener)
+    }
+
+    override fun removeCloseListener(listener: () -> Unit): Unit = lock.withLock {
+        closeListeners.remove(listener)
     }
 
     private fun flushQueues(): Unit = lock.withLock {
@@ -101,10 +120,10 @@ internal class RealStateStore<T>(
         // set the new state
         this.state = state
 
-        // capture listeners
-        val listeners = listeners.toList()
+        // capture stateListeners
+        val listeners = stateListeners.toList()
 
-        // notify listeners
+        // notify stateListeners
         callbackExecutor.execute {
             listeners.forEach { it(state) }
         }
