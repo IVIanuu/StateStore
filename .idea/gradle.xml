@@ -13,7 +13,7 @@
             <option value="$PROJECT_DIR$/statestore" />
             <option value="$PROJECT_DIR$/statestore-android" />
             <option value="$PROJECT_DIR$/statestore-coroutines" />
-            <option value="$PROJECT_DIR$/statestore-lifecycle" />
+            <option value="$PROJECT_DIR$/statestore-livedata" />
             <option value="$PROJECT_DIR$/statestore-rx" />
           </set>
         </option>

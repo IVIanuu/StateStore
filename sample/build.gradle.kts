@@ -47,6 +47,6 @@ dependencies {
     implementation(project(":statestore"))
     implementation(project(":statestore-android"))
     implementation(project(":statestore-coroutines"))
-    implementation(project(":statestore-lifecycle"))
+    implementation(project(":statestore-livedata"))
     implementation(project(":statestore-rx"))
 }

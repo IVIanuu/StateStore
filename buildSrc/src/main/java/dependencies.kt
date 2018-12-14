@@ -14,7 +14,7 @@ object Build {
 object Versions {
     const val androidGradlePlugin = "3.2.1"
     const val androidx = "1.0.0"
-    const val androidxArch = "2.0.0-rc01"
+    const val androidxLifecycle = "2.0.0"
     const val coroutines = "1.0.0"
     const val junit = "4.12"
     const val kotlin = "1.3.0"
@@ -27,8 +27,8 @@ object Deps {
 
     const val androidxAppCompat = "androidx.appcompat:appcompat:${Versions.androidx}"
 
-    const val archLifecycleExtensions =
-        "androidx.lifecycle:lifecycle-extensions:${Versions.androidxArch}"
+    const val androidxLifecycleExtensions =
+        "androidx.lifecycle:lifecycle-extensions:${Versions.androidxLifecycle}"
 
     const val coroutinesCore =
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"
