@@ -2,6 +2,7 @@ package com.ivianuu.statestore.sample
 
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import com.ivianuu.statestore.StateStore
 import com.ivianuu.statestore.rx.observable
 import io.reactivex.disposables.CompositeDisposable

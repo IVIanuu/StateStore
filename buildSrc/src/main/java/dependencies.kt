@@ -27,8 +27,8 @@ object Deps {
 
     const val androidxAppCompat = "androidx.appcompat:appcompat:${Versions.androidx}"
 
-    const val androidxLifecycleExtensions =
-        "androidx.lifecycle:lifecycle-extensions:${Versions.androidxLifecycle}"
+    const val androidxLifecycleLiveData =
+        "androidx.lifecycle:lifecycle-livedata:${Versions.androidxLifecycle}"
 
     const val coroutinesCore =
         "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}"

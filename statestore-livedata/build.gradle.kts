@@ -39,7 +39,7 @@ android {
 
 dependencies {
     api(project(":statestore"))
-    api(Deps.androidxLifecycleExtensions)
+    api(Deps.androidxLifecycleLiveData)
 }
 
 val sourcesJar = task("sourcesJar", Jar::class) {
