@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         state.onClose
-            .subscribe { Log.d("testt", "closed thread ${Thread.currentThread().name}") }
+            .subscribe { Log.d("testt", "closed thread  ${Thread.currentThread().name}") }
             .also { disposables.add(it) }
 
         state.observable
