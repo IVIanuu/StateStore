@@ -17,7 +17,7 @@ object Versions {
     const val androidxLifecycle = "2.0.0"
     const val coroutines = "1.0.0"
     const val junit = "4.12"
-    const val kotlin = "1.3.10"
+    const val kotlin = "1.3.11"
     const val mavenGradle = "2.1"
     const val rxJava = "2.2.2"
 }
