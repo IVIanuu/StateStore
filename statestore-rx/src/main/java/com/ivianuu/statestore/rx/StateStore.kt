@@ -16,6 +16,8 @@
 
 package com.ivianuu.statestore.rx
 
+import com.ivianuu.statestore.CloseListener
+import com.ivianuu.statestore.StateListener
 import com.ivianuu.statestore.StateStore
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -25,7 +27,7 @@ import io.reactivex.Observable
  */
 val StateStore<*>.onClose: Completable
     get() = Completable.create { e ->
-        val closeListener: () -> Unit = {
+        val closeListener: CloseListener = {
             if (!e.isDisposed) {
                 e.onComplete()
             }
@@ -40,13 +42,13 @@ val StateStore<*>.onClose: Completable
  * Returns a [Observable] which emits on state changes
  */
 val <T> StateStore<T>.observable: Observable<T> get() = Observable.create { e ->
-    val stateListener: (T) -> Unit = {
+    val stateListener: StateListener<T> = {
         if (!e.isDisposed) {
             e.onNext(it)
         }
     }
 
-    val closeListener: () -> Unit = {
+    val closeListener: CloseListener = {
         if (!e.isDisposed) {
             e.onComplete()
         }

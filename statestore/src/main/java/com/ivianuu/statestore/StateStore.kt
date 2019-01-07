@@ -23,23 +23,28 @@ import java.util.concurrent.Executor
  */
 interface StateStore<T> {
 
-    fun withState(consumer: (T) -> Unit)
+    fun withState(consumer: Consumer<T>)
 
-    fun setState(reducer: T.() -> T)
+    fun setState(reducer: Reducer<T>)
 
     fun peekState(): T
 
-    fun addStateListener(listener: (T) -> Unit)
+    fun addStateListener(listener: StateListener<T>)
 
-    fun removeStateListener(listener: (T) -> Unit)
+    fun removeStateListener(listener: StateListener<T>)
 
-    fun addCloseListener(listener: () -> Unit)
+    fun addCloseListener(listener: CloseListener)
 
-    fun removeCloseListener(listener: () -> Unit)
+    fun removeCloseListener(listener: CloseListener)
 
     fun close()
 
 }
+
+typealias Consumer<T> = (T) -> Unit
+typealias Reducer<T> = T.() -> T
+typealias StateListener<T> = (T) -> Unit
+typealias CloseListener = () -> Unit
 
 /**
  * Returns a new [StateStore]

@@ -31,21 +31,21 @@ internal class RealStateStore<T>(
 
     private var closed = false
 
-    private val closeListeners = mutableListOf<() -> Unit>()
-    private val stateListeners = mutableListOf<(T) -> Unit>()
+    private val closeListeners = mutableListOf<CloseListener>()
+    private val stateListeners = mutableListOf<StateListener<T>>()
 
     private val lock = ReentrantLock()
 
     private val jobs = Jobs<T>()
 
-    override fun withState(consumer: (T) -> Unit): Unit = lock.withLock {
+    override fun withState(consumer: Consumer<T>): Unit = lock.withLock {
         if (closed) return@withLock
 
         jobs.enqueueGetStateBlock(consumer)
         executor.execute { flushQueues() }
     }
 
-    override fun setState(reducer: T.() -> T): Unit = lock.withLock {
+    override fun setState(reducer: Reducer<T>): Unit = lock.withLock {
         if (closed) return@withLock
 
         jobs.enqueueSetStateBlock(reducer)
@@ -54,7 +54,7 @@ internal class RealStateStore<T>(
 
     override fun peekState(): T = lock.withLock { state }
 
-    override fun addStateListener(listener: (T) -> Unit): Unit = lock.withLock {
+    override fun addStateListener(listener: StateListener<T>): Unit = lock.withLock {
         if (stateListeners.contains(listener)) return@withLock
 
         stateListeners.add(listener)
@@ -64,7 +64,7 @@ internal class RealStateStore<T>(
         callbackExecutor.execute { listener(state) }
     }
 
-    override fun removeStateListener(listener: (T) -> Unit): Unit = lock.withLock {
+    override fun removeStateListener(listener: StateListener<T>): Unit = lock.withLock {
         stateListeners.remove(listener)
     }
 
@@ -82,7 +82,7 @@ internal class RealStateStore<T>(
         callbackExecutor.execute { listeners.forEach { it() } }
     }
 
-    override fun addCloseListener(listener: () -> Unit): Unit = lock.withLock {
+    override fun addCloseListener(listener: CloseListener): Unit = lock.withLock {
         if (closeListeners.contains(listener)) return@withLock
         if (closed) {
             listener()
@@ -91,7 +91,7 @@ internal class RealStateStore<T>(
         closeListeners.add(listener)
     }
 
-    override fun removeCloseListener(listener: () -> Unit): Unit = lock.withLock {
+    override fun removeCloseListener(listener: CloseListener): Unit = lock.withLock {
         closeListeners.remove(listener)
     }
 
