@@ -36,7 +36,7 @@ interface StateStore<T> {
     fun setState(reducer: Reducer<T>)
 
     /**
-     * Returns the currrent state
+     * Returns the current state
      */
     fun peekState(): T
 

@@ -12,20 +12,20 @@ object Build {
 }
 
 object Versions {
-    const val androidGradlePlugin = "3.2.1"
-    const val androidx = "1.0.0"
+    const val androidGradlePlugin = "3.3.0"
+    const val androidxAppCompat = "1.0.0"
     const val androidxLifecycle = "2.0.0"
-    const val coroutines = "1.0.0"
+    const val coroutines = "1.1.0"
     const val junit = "4.12"
-    const val kotlin = "1.3.11"
+    const val kotlin = "1.3.20"
     const val mavenGradle = "2.1"
-    const val rxJava = "2.2.2"
+    const val rxJava = "2.2.6"
 }
 
 object Deps {
     const val androidGradlePlugin = "com.android.tools.build:gradle:${Versions.androidGradlePlugin}"
 
-    const val androidxAppCompat = "androidx.appcompat:appcompat:${Versions.androidx}"
+    const val androidxAppCompat = "androidx.appcompat:appcompat:${Versions.androidxAppCompat}"
 
     const val androidxLifecycleLiveData =
         "androidx.lifecycle:lifecycle-livedata:${Versions.androidxLifecycle}"
