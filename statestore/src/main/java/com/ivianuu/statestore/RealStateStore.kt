@@ -31,8 +31,8 @@ internal class RealStateStore<T>(
 
     private var closed = false
 
-    private val closeListeners = mutableListOf<CloseListener>()
-    private val stateListeners = mutableListOf<StateListener<T>>()
+    private val closeListeners = mutableSetOf<CloseListener>()
+    private val stateListeners = mutableSetOf<StateListener<T>>()
 
     private val lock = ReentrantLock()
 
@@ -55,13 +55,11 @@ internal class RealStateStore<T>(
     override fun peekState(): T = lock.withLock { state }
 
     override fun addStateListener(listener: StateListener<T>): Unit = lock.withLock {
-        if (stateListeners.contains(listener)) return@withLock
-
-        stateListeners.add(listener)
-
-        // send current state
-        val state = state
-        callbackExecutor.execute { listener(state) }
+        if (stateListeners.add(listener)) {
+            // send current state
+            val state = state
+            callbackExecutor.execute { listener(state) }
+        }
     }
 
     override fun removeStateListener(listener: StateListener<T>): Unit = lock.withLock {
@@ -83,12 +81,9 @@ internal class RealStateStore<T>(
     }
 
     override fun addCloseListener(listener: CloseListener): Unit = lock.withLock {
-        if (closeListeners.contains(listener)) return@withLock
-        if (closed) {
+        if (closeListeners.add(listener) && closed) {
             listener()
-            return@withLock
         }
-        closeListeners.add(listener)
     }
 
     override fun removeCloseListener(listener: CloseListener): Unit = lock.withLock {
@@ -106,11 +101,9 @@ internal class RealStateStore<T>(
     }
 
     private fun flushSetStateQueue() {
-        val blocks = jobs.dequeueAllSetStateBlocks() ?: return
-
-        blocks
-            .fold(state) { state, reducer -> state.reducer() }
-            .also { setState(it) }
+        jobs.dequeueAllSetStateBlocks()
+            ?.fold(state) { state, reducer -> state.reducer() }
+            ?.also { setState(it) }
     }
 
     private fun setState(state: T) {
@@ -134,20 +127,20 @@ internal class RealStateStore<T>(
         private val getStateQueue = LinkedList<(state: S) -> Unit>()
         private var setStateQueue = LinkedList<S.() -> S>()
 
-        fun enqueueGetStateBlock(block: (state: S) -> Unit) {
+        fun enqueueGetStateBlock(block: Consumer<S>) {
             getStateQueue.add(block)
         }
 
-        fun enqueueSetStateBlock(block: S.() -> S) {
+        fun enqueueSetStateBlock(block: Reducer<S>) {
             setStateQueue.add(block)
         }
 
-        fun dequeueGetStateBlock(): ((state: S) -> Unit)? {
+        fun dequeueGetStateBlock(): Consumer<S>? {
             if (getStateQueue.isEmpty()) return null
             return getStateQueue.removeFirst()
         }
 
-        fun dequeueAllSetStateBlocks(): List<(S.() -> S)>? {
+        fun dequeueAllSetStateBlocks(): List<Reducer<S>>? {
             // do not allocate empty queue for no-op flushes
             if (setStateQueue.isEmpty()) return null
 

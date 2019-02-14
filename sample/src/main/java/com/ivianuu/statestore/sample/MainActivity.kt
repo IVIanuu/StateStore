@@ -17,11 +17,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        state.onClose
+        state.onClose()
             .subscribe { Log.d("testt", "closed thread  ${Thread.currentThread().name}") }
             .also { disposables.add(it) }
 
-        state.observable
+        state.observable()
             .subscribe { Log.d("testt", "state changed -> $it, thread ${Thread.currentThread().name}") }
             .also { disposables.add(it) }
 

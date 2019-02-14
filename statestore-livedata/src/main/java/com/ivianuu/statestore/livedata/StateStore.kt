@@ -24,8 +24,7 @@ import com.ivianuu.statestore.StateStore
 /**
  * Returns a [LiveData] which emits on state changes
  */
-val <T> StateStore<T>.liveData: LiveData<T>
-    get() {
+fun <T> StateStore<T>.liveData(): LiveData<T> {
         val liveData = MutableLiveData<T>()
         addStateListener {
             when {

@@ -25,8 +25,7 @@ import io.reactivex.Observable
 /**
  * Returns a [Completable] which completes on close
  */
-val StateStore<*>.onClose: Completable
-    get() = Completable.create { e ->
+fun StateStore<*>.onClose(): Completable = Completable.create { e ->
         val closeListener: CloseListener = {
             if (!e.isDisposed) {
                 e.onComplete()
@@ -41,7 +40,7 @@ val StateStore<*>.onClose: Completable
 /**
  * Returns a [Observable] which emits on state changes
  */
-val <T> StateStore<T>.observable: Observable<T> get() = Observable.create { e ->
+fun <T> StateStore<T>.observable(): Observable<T> = Observable.create { e ->
     val stateListener: StateListener<T> = {
         if (!e.isDisposed) {
             e.onNext(it)
