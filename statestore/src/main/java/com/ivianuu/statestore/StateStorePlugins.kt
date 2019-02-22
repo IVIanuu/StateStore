@@ -21,14 +21,26 @@ import java.util.concurrent.Executor
 /**
  * Global configuration
  */
-object StateStorePlugins {
-    /**
-     * The default executor to use
-     */
-    var defaultExecutor: Executor? = null
+object StateStorePlugins
 
-    /**
-     * The default callback executor to use
-     */
-    var defaultCallbackExecutor: Executor? = null
-}
+private var _defaultExecutor: Executor? = null
+
+/**
+ * The default executor to use
+ */
+var StateStorePlugins.defaultExecutor: Executor?
+    get() = _defaultExecutor
+    set(value) {
+        _defaultExecutor = value
+    }
+
+private var _defaultCallbackExecutor: Executor? = null
+
+/**
+ * The default callback executor to use
+ */
+var StateStorePlugins.defaultCallbackExecutor: Executor?
+    get() = _defaultCallbackExecutor
+    set(value) {
+        _defaultCallbackExecutor = value
+    }

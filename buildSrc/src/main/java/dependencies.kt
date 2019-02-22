@@ -24,7 +24,7 @@ object Versions {
     const val bintray = "1.8.4"
     const val coroutines = "1.1.0"
     const val junit = "4.12"
-    const val kotlin = "1.3.20"
+    const val kotlin = "1.3.21"
     const val mavenGradle = "2.1"
     const val rxJava = "2.2.6"
 }

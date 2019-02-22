@@ -19,6 +19,7 @@ package com.ivianuu.statestore.sample
 import android.app.Application
 import com.ivianuu.statestore.StateStorePlugins
 import com.ivianuu.statestore.android.MAIN_THREAD_EXECUTOR
+import com.ivianuu.statestore.defaultCallbackExecutor
 
 /**
  * @author Manuel Wrage (IVIanuu)
