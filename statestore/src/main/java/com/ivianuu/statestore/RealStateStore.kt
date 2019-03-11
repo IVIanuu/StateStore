@@ -73,8 +73,6 @@ internal class RealStateStore<T>(
         val listeners = closeListeners.toList()
         closeListeners.clear()
 
-        (executor as? SingleThreadExecutor)?.close() // todo generify
-
         callbackExecutor.execute { listeners.forEach { it() } }
     }
 

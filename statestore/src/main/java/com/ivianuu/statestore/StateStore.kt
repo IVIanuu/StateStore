@@ -67,19 +67,11 @@ interface StateStore<T> {
 
 }
 
-typealias Consumer<T> = (T) -> Unit
-
-typealias Reducer<T> = T.() -> T
-
-typealias StateListener<T> = (T) -> Unit
-
-typealias CloseListener = () -> Unit
-
 /**
  * Returns a new [StateStore]
  */
 fun <T> StateStore(
     initialState: T,
-    executor: Executor = StateStorePlugins.defaultExecutor ?: SingleThreadExecutor(),
+    executor: Executor = StateStorePlugins.defaultExecutor ?: defaultExecutor,
     callbackExecutor: Executor = StateStorePlugins.defaultCallbackExecutor ?: executor
 ): StateStore<T> = RealStateStore(initialState, executor, callbackExecutor)
