@@ -16,4 +16,21 @@
 
 package com.ivianuu.statestore.coroutines
 
-// todo
+import com.ivianuu.statestore.StateListener
+import com.ivianuu.statestore.StateStore
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.channels.ReceiveChannel
+
+/**
+ * Returns a [ReceiveChannel] which emits on changes
+ */
+@ExperimentalCoroutinesApi
+fun <T> StateStore<T>.receiveChannel(): ReceiveChannel<T> {
+// todo improve this there must be a better way than using a conflated broadcast channel
+    val channel = ConflatedBroadcastChannel<T>()
+    val listener: StateListener<T> = { channel.offer(it) }
+    channel.invokeOnClose { removeStateListener(listener) }
+    addStateListener(listener)
+    return channel.openSubscription()
+}
