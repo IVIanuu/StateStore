@@ -40,16 +40,14 @@ internal class RealStateStore<T>(
 
     override fun withState(consumer: Consumer<T>): Unit = lock.withLock {
         if (closed) return@withLock
-
-        jobs.enqueueGetStateBlock(consumer)
-        executor.execute { flushQueues() }
+        jobs.enqueueGet(consumer)
+        executor.execute(this::flushQueues)
     }
 
     override fun setState(reducer: Reducer<T>): Unit = lock.withLock {
         if (closed) return@withLock
-
-        jobs.enqueueSetStateBlock(reducer)
-        executor.execute { flushQueues() }
+        jobs.enqueueSet(reducer)
+        executor.execute(this::flushQueues)
     }
 
     override fun peekState(): T = lock.withLock { state }
@@ -92,22 +90,25 @@ internal class RealStateStore<T>(
 
     private fun flushQueues(): Unit = lock.withLock {
         if (closed) return@withLock
-
         flushSetStateQueue()
-        val block = jobs.dequeueGetStateBlock() ?: return
-        block(state)
-
-        flushQueues()
+        flushGetStateQueue()
+        if (jobs.hasJobs) {
+            flushQueues()
+        }
     }
 
     private fun flushSetStateQueue() {
-        jobs.dequeueAllSetStateBlocks()
-            ?.fold(state) { state, reducer -> state.reducer() }
-            ?.also { setState(it) }
+        val reducer = jobs.dequeueSet() ?: return
+        val newState = reducer(state)
+        setState(newState)
+    }
+
+    private fun flushGetStateQueue() {
+        val consumer = jobs.dequeueGet() ?: return
+        consumer(state)
     }
 
     private fun setState(state: T) {
-        if (this.state === state) return
         if (this.state == state) return
 
         // set the new state
@@ -117,36 +118,31 @@ internal class RealStateStore<T>(
         val listeners = stateListeners.toList()
 
         // notify stateListeners
-        callbackExecutor.execute {
-            listeners.forEach { it(state) }
-        }
+        callbackExecutor.execute { listeners.forEach { it(state) } }
     }
 
-    private class Jobs<S> {
+    private class Jobs<T> {
 
-        private val getStateQueue = LinkedList<(state: S) -> Unit>()
-        private var setStateQueue = LinkedList<S.() -> S>()
+        val hasJobs
+            get() = getStateQueue.isNotEmpty() || setStateQueue.isNotEmpty()
 
-        fun enqueueGetStateBlock(block: Consumer<S>) {
-            getStateQueue.add(block)
+        private val getStateQueue = LinkedList<Consumer<T>>()
+        private val setStateQueue = LinkedList<Reducer<T>>()
+
+        fun enqueueGet(consumer: Consumer<T>) {
+            getStateQueue.add(consumer)
         }
 
-        fun enqueueSetStateBlock(block: Reducer<S>) {
-            setStateQueue.add(block)
+        fun enqueueSet(reducer: Reducer<T>) {
+            setStateQueue.add(reducer)
         }
 
-        fun dequeueGetStateBlock(): Consumer<S>? {
-            if (getStateQueue.isEmpty()) return null
-            return getStateQueue.removeFirst()
+        fun dequeueGet(): Consumer<T>? {
+            return getStateQueue.poll()
         }
 
-        fun dequeueAllSetStateBlocks(): List<Reducer<S>>? {
-            // do not allocate empty queue for no-op flushes
-            if (setStateQueue.isEmpty()) return null
-
-            val queue = setStateQueue
-            setStateQueue = LinkedList()
-            return queue
+        fun dequeueSet(): Reducer<T>? {
+            return setStateQueue.poll()
         }
     }
 }
