@@ -20,7 +20,9 @@ import com.ivianuu.statestore.util.TestCloseListener
 import com.ivianuu.statestore.util.TestExecutor
 import com.ivianuu.statestore.util.TestState
 import com.ivianuu.statestore.util.TestStateListener
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RealStateStoreTest {
@@ -126,20 +128,6 @@ class RealStateStoreTest {
 
         store.setState { inc() }
         assertEquals(expectedState, listener.history)
-    }
-
-    @Test
-    fun testListenerAddedTwice() {
-        val listener = TestStateListener<TestState>()
-
-        store.addStateListener(listener)
-        store.addStateListener(listener)
-
-        assertEquals(listener.calls, 1)
-
-        store.setState { inc() }
-
-        assertEquals(listener.calls, 2)
     }
 
     @Test

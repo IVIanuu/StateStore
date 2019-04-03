@@ -1,5 +1,3 @@
-import java.io.File
-
 /*
  * Copyright 2018 Manuel Wrage
  *
@@ -25,6 +23,7 @@ apply(from = "https://raw.githubusercontent.com/IVIanuu/gradle-scripts/master/ja
 apply(from = "https://raw.githubusercontent.com/IVIanuu/gradle-scripts/master/mvn-publish.gradle")
 
 dependencies {
+    api(Deps.closeable)
     api(Deps.kotlinStdLib)
     testImplementation(Deps.junit)
 }

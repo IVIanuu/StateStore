@@ -16,6 +16,7 @@
 
 package com.ivianuu.statestore
 
+import com.ivianuu.closeable.Closeable
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.locks.ReentrantLock
@@ -29,7 +30,9 @@ internal class RealStateStore<T>(
 
     private var state = initialState
 
-    private var closed = false
+    override val isClosed: Boolean
+        get() = _isClosed
+    private var _isClosed = false
 
     private val closeListeners = mutableSetOf<CloseListener>()
     private val stateListeners = mutableSetOf<StateListener<T>>()
@@ -39,25 +42,27 @@ internal class RealStateStore<T>(
     private val jobs = Jobs<T>()
 
     override fun withState(consumer: Consumer<T>): Unit = lock.withLock {
-        if (closed) return@withLock
+        if (_isClosed) return@withLock
         jobs.enqueueGet(consumer)
         executor.execute(this::flushQueues)
     }
 
     override fun setState(reducer: Reducer<T>): Unit = lock.withLock {
-        if (closed) return@withLock
+        if (_isClosed) return@withLock
         jobs.enqueueSet(reducer)
         executor.execute(this::flushQueues)
     }
 
     override fun peekState(): T = lock.withLock { state }
 
-    override fun addStateListener(listener: StateListener<T>): Unit = lock.withLock {
-        if (stateListeners.add(listener)) {
-            // send current state
-            val state = state
-            callbackExecutor.execute { listener(state) }
-        }
+    override fun addStateListener(listener: StateListener<T>): Closeable = lock.withLock {
+        stateListeners.add(listener)
+
+        // send current state
+        val state = state
+        callbackExecutor.execute { listener(state) }
+
+        return@withLock Closeable { removeStateListener(listener) }
     }
 
     override fun removeStateListener(listener: StateListener<T>): Unit = lock.withLock {
@@ -65,8 +70,8 @@ internal class RealStateStore<T>(
     }
 
     override fun close(): Unit = lock.withLock {
-        if (closed) return@withLock
-        closed = true
+        if (_isClosed) return@withLock
+        _isClosed = true
 
         stateListeners.clear()
 
@@ -76,10 +81,13 @@ internal class RealStateStore<T>(
         callbackExecutor.execute { listeners.forEach { it() } }
     }
 
-    override fun addCloseListener(listener: CloseListener): Unit = lock.withLock {
-        if (closeListeners.add(listener) && closed) {
+    override fun addCloseListener(listener: CloseListener): Closeable = lock.withLock {
+        if (_isClosed) {
             listener()
+            return@withLock Closeable { removeCloseListener(listener) }
         }
+        closeListeners.add(listener)
+        return@withLock Closeable { removeCloseListener(listener) }
     }
 
     override fun removeCloseListener(listener: CloseListener): Unit = lock.withLock {
@@ -87,7 +95,7 @@ internal class RealStateStore<T>(
     }
 
     private fun flushQueues(): Unit = lock.withLock {
-        if (closed) return@withLock
+        if (_isClosed) return@withLock
         flushSetStateQueue()
         flushGetStateQueue()
         if (jobs.hasJobs) {

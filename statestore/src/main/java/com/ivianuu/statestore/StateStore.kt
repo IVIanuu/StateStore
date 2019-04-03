@@ -16,12 +16,13 @@
 
 package com.ivianuu.statestore
 
+import com.ivianuu.closeable.Closeable
 import java.util.concurrent.Executor
 
 /**
  * A store for state of [T]'s
  */
-interface StateStore<T> {
+interface StateStore<T> : Closeable {
 
     /**
      * Runs the [consumer] with the current state
@@ -43,7 +44,7 @@ interface StateStore<T> {
     /**
      * Notifies the [listener] on state changes
      */
-    fun addStateListener(listener: StateListener<T>)
+    fun addStateListener(listener: StateListener<T>): Closeable
 
     /**
      * Removes the previously added [listener]
@@ -53,17 +54,12 @@ interface StateStore<T> {
     /**
      * Notifies the [listener] when this store gets closed
      */
-    fun addCloseListener(listener: CloseListener)
+    fun addCloseListener(listener: CloseListener): Closeable
 
     /**
      * Removes the previously added [listener]
      */
     fun removeCloseListener(listener: CloseListener)
-
-    /**
-     * Closes this store
-     */
-    fun close()
 
 }
 

@@ -19,11 +19,11 @@ class MainActivity : AppCompatActivity() {
 
         state.onClose()
             .subscribe { Log.d("testt", "closed thread  ${Thread.currentThread().name}") }
-            .let { disposables.add(it) }
+            .let(disposables::add)
 
         state.observable()
             .subscribe { Log.d("testt", "state changed -> $it, thread ${Thread.currentThread().name}") }
-            .let { disposables.add(it) }
+            .let(disposables::add)
 
         state.withState {
             Log.d("testtt", "with state 1 $it thread ${Thread.currentThread().name}")
@@ -31,11 +31,13 @@ class MainActivity : AppCompatActivity() {
 
         state.setState {
             Log.d("testtt", "set state thread ${Thread.currentThread().name}")
-            this + " world" }
+            "$this world"
+        }
 
         state.setState {
             Log.d("testtt", "set state thread ${Thread.currentThread().name}")
-            this + " whats up?" }
+            "$this whats up?"
+        }
 
         state.withState {
             Log.d("testtt", "with state 2 $it thread ${Thread.currentThread().name}")
