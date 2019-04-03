@@ -52,15 +52,6 @@ class RealStateStoreTest {
     }
 
     @Test
-    fun testCloseListenerAddedTwice() {
-        val listener = TestCloseListener()
-        store.addCloseListener(listener)
-        store.addCloseListener(listener)
-        store.close()
-        assertEquals(1, listener.closeCalls)
-    }
-
-    @Test
     fun testGetAndSetState() {
         var called = false
         store.withState {
