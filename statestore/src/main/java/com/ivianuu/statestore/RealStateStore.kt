@@ -44,13 +44,13 @@ internal class RealStateStore<T>(
     override fun withState(consumer: Consumer<T>): Unit = lock.withLock {
         if (_isClosed) return@withLock
         jobs.enqueueGet(consumer)
-        executor.execute(this::flushQueues)
+        executor.execute { flushQueues() }
     }
 
     override fun setState(reducer: Reducer<T>): Unit = lock.withLock {
         if (_isClosed) return@withLock
         jobs.enqueueSet(reducer)
-        executor.execute(this::flushQueues)
+        executor.execute { flushQueues() }
     }
 
     override fun peekState(): T = lock.withLock { state }
