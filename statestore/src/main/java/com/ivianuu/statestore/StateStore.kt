@@ -22,7 +22,7 @@ import java.util.concurrent.Executor
 /**
  * A store for state of [T]'s
  */
-interface StateStore<T> : Closeable {
+interface StateStore<T> {
 
     /**
      * Runs the [consumer] with the current state
@@ -44,22 +44,12 @@ interface StateStore<T> : Closeable {
     /**
      * Notifies the [listener] on state changes
      */
-    fun addStateListener(listener: StateListener<T>): Closeable
+    fun addListener(listener: StateListener<T>): Closeable
 
     /**
      * Removes the previously added [listener]
      */
-    fun removeStateListener(listener: StateListener<T>)
-
-    /**
-     * Notifies the [listener] when this store gets closed
-     */
-    fun addCloseListener(listener: CloseListener): Closeable
-
-    /**
-     * Removes the previously added [listener]
-     */
-    fun removeCloseListener(listener: CloseListener)
+    fun removeListener(listener: StateListener<T>)
 
 }
 

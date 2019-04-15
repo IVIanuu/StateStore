@@ -19,8 +19,6 @@ package com.ivianuu.statestore
 import com.ivianuu.closeable.Closeable
 import java.util.*
 import java.util.concurrent.Executor
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 internal class RealStateStore<T>(
     initialState: T,
@@ -30,87 +28,58 @@ internal class RealStateStore<T>(
 
     private var state = initialState
 
-    override val isClosed: Boolean
-        get() = _isClosed
-    private var _isClosed = false
-
-    private val closeListeners = mutableSetOf<CloseListener>()
-    private val stateListeners = mutableSetOf<StateListener<T>>()
-
-    private val lock = ReentrantLock()
+    private val listeners = mutableListOf<StateListener<T>>()
 
     private val jobs = Jobs<T>()
 
-    override fun withState(consumer: Consumer<T>): Unit = lock.withLock {
-        if (_isClosed) return@withLock
-        jobs.enqueueGet(consumer)
-        executor.execute { flushQueues() }
+    override fun withState(consumer: Consumer<T>) {
+        synchronized(this) { jobs.enqueueGet(consumer) }
+        dispatchFlush()
     }
 
-    override fun setState(reducer: Reducer<T>): Unit = lock.withLock {
-        if (_isClosed) return@withLock
-        jobs.enqueueSet(reducer)
-        executor.execute { flushQueues() }
+    override fun setState(reducer: Reducer<T>) {
+        synchronized(this) { jobs.enqueueSet(reducer) }
+        dispatchFlush()
     }
 
-    override fun peekState(): T = lock.withLock { state }
+    override fun peekState(): T = synchronized(this) { state }
 
-    override fun addStateListener(listener: StateListener<T>): Closeable = lock.withLock {
-        stateListeners.add(listener)
+    override fun addListener(listener: StateListener<T>): Closeable {
+        synchronized(this) { listeners.add(listener) }
 
         // send current state
-        val state = state
+        val state = synchronized(this) { state }
         callbackExecutor.execute { listener(state) }
 
-        return@withLock Closeable { removeStateListener(listener) }
+        return Closeable { removeListener(listener) }
     }
 
-    override fun removeStateListener(listener: StateListener<T>): Unit = lock.withLock {
-        stateListeners.remove(listener)
+    override fun removeListener(listener: StateListener<T>) {
+        synchronized(this) { listeners.remove(listener) }
     }
 
-    override fun close(): Unit = lock.withLock {
-        if (_isClosed) return@withLock
-        _isClosed = true
-
-        stateListeners.clear()
-
-        val listeners = closeListeners.toList()
-        closeListeners.clear()
-
-        callbackExecutor.execute { listeners.forEach { it() } }
+    private fun dispatchFlush() {
+        executor.execute { flushQueues() }
     }
 
-    override fun addCloseListener(listener: CloseListener): Closeable = lock.withLock {
-        if (_isClosed) {
-            listener()
-            return@withLock Closeable { removeCloseListener(listener) }
-        }
-        closeListeners.add(listener)
-        return@withLock Closeable { removeCloseListener(listener) }
-    }
-
-    override fun removeCloseListener(listener: CloseListener): Unit = lock.withLock {
-        closeListeners.remove(listener)
-    }
-
-    private fun flushQueues(): Unit = lock.withLock {
-        if (_isClosed) return@withLock
-        flushSetStateQueue()
-        flushGetStateQueue()
-        if (jobs.hasJobs) {
-            flushQueues()
+    private fun flushQueues() {
+        while (synchronized(this) { jobs.hasJobs }) {
+            flushSetStateQueue()
+            flushGetStateQueue()
         }
     }
 
     private fun flushSetStateQueue() {
-        val reducer = jobs.dequeueSet() ?: return
-        val newState = reducer(state)
-        setState(newState)
+        synchronized(this) {
+            val reducer = jobs.dequeueSet() ?: return@flushSetStateQueue
+            val newState = reducer(state)
+            setState(newState)
+        }
     }
 
     private fun flushGetStateQueue() {
-        val consumer = jobs.dequeueGet() ?: return
+        val consumer = synchronized(this) { jobs.dequeueGet() } ?: return
+        val state = synchronized(this) { state }
         consumer(state)
     }
 
@@ -120,10 +89,10 @@ internal class RealStateStore<T>(
         // set the new state
         this.state = state
 
-        // capture stateListeners
-        val listeners = stateListeners.toList()
+        // capture state listeners
+        val listeners = listeners.toList()
 
-        // notify stateListeners
+        // notify state listeners
         callbackExecutor.execute { listeners.forEach { it(state) } }
     }
 

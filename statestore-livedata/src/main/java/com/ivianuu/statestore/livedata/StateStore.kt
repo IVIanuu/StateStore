@@ -26,7 +26,7 @@ import com.ivianuu.statestore.StateStore
  */
 fun <T> StateStore<T>.liveData(): LiveData<T> {
         val liveData = MutableLiveData<T>()
-        addStateListener {
+    addListener {
             when {
                 Looper.myLooper() == Looper.getMainLooper() -> liveData.value = it
                 else -> liveData.postValue(it)

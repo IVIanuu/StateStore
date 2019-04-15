@@ -30,7 +30,7 @@ fun <T> StateStore<T>.receiveChannel(): ReceiveChannel<T> {
 // todo improve this there must be a better way than using a conflated broadcast channel
     val channel = ConflatedBroadcastChannel<T>()
     val listener: StateListener<T> = { channel.offer(it) }
-    channel.invokeOnClose { removeStateListener(listener) }
-    addStateListener(listener)
+    channel.invokeOnClose { removeListener(listener) }
+    addListener(listener)
     return channel.openSubscription()
 }
