@@ -23,7 +23,7 @@ import io.reactivex.Observable
 /**
  * Returns a [Observable] which emits on state changes
  */
-fun <T> StateStore<T>.observable(): Observable<T> = Observable.create { e ->
+fun <T> StateStore<T>.asObservable(): Observable<T> = Observable.create { e ->
     val stateListener: StateListener<T> = {
         if (!e.isDisposed) {
             e.onNext(it)
