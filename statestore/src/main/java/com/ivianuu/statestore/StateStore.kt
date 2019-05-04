@@ -16,7 +16,6 @@
 
 package com.ivianuu.statestore
 
-import com.ivianuu.closeable.Closeable
 import java.util.concurrent.Executor
 
 /**
@@ -44,7 +43,7 @@ interface StateStore<T> {
     /**
      * Notifies the [listener] on state changes
      */
-    fun addListener(listener: StateListener<T>): Closeable
+    fun addListener(listener: StateListener<T>)
 
     /**
      * Removes the previously added [listener]

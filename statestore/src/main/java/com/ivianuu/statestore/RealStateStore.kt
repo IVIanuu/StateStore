@@ -16,7 +16,6 @@
 
 package com.ivianuu.statestore
 
-import com.ivianuu.closeable.Closeable
 import java.util.*
 import java.util.concurrent.Executor
 
@@ -44,14 +43,12 @@ internal class RealStateStore<T>(
 
     override fun peekState(): T = synchronized(this) { state }
 
-    override fun addListener(listener: StateListener<T>): Closeable {
+    override fun addListener(listener: StateListener<T>) {
         synchronized(this) { listeners.add(listener) }
 
         // send current state
         val state = synchronized(this) { state }
         callbackExecutor.execute { listener(state) }
-
-        return Closeable { removeListener(listener) }
     }
 
     override fun removeListener(listener: StateListener<T>) {
